@@ -7,9 +7,8 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
             margin: 0; 
@@ -19,6 +18,344 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel" src="src/App.js"></script>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Simple icons as React components (replacing lucide-react)
+        const Menu = () => React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('line', { x1: 4, y1: 6, x2: 20, y2: 6 }),
+            React.createElement('line', { x1: 4, y1: 12, x2: 20, y2: 12 }),
+            React.createElement('line', { x1: 4, y1: 18, x2: 20, y2: 18 })
+        );
+        
+        const Edit2 = () => React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('path', { d: 'm7 7 3-3 9.5 9.5a7.07 7.07 0 0 1-3 3L7 7Z' }),
+            React.createElement('path', { d: 'm7 10 6-6' })
+        );
+        
+        const Save = () => React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('path', { d: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z' }),
+            React.createElement('polyline', { points: '17,21 17,13 7,13 7,21' })
+        );
+
+        const Download = () => React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }),
+            React.createElement('polyline', { points: '7,10 12,15 17,10' }),
+            React.createElement('line', { x1: 12, y1: 15, x2: 12, y2: 3 })
+        );
+
+        const Copy = () => React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }, 
+            React.createElement('rect', { width: 14, height: 14, x: 8, y: 8, rx: 2, ry: 2 }),
+            React.createElement('path', { d: 'm4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2' })
+        );
+
+        const CustomerJourneyDashboard = () => {
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            const [currentView, setCurrentView] = useState('overview');
+            const [editMode, setEditMode] = useState(false);
+            const [shareMessage, setShareMessage] = useState('');
+            
+            // Sample data
+            const [journeyData, setJourneyData] = useState({
+                totalJourneys: 224,
+                smsMessages: 305,
+                mobileContent: 12892,
+                journeyReview: 100,
+                journeyImplement: 45,
+                smsMessagesProgress: 99,
+                mobileAppProgress: 99
+            });
+
+            const [journeysData, setJourneysData] = useState({
+                applications: [
+                    {
+                        id: 1,
+                        journey: "1.5 Add choice",
+                        comment: "Add choice functionality to application forms",
+                        complexity: "Simple = 1 week",
+                        status: "Pending"
+                    }
+                ],
+                atm: [
+                    {
+                        id: 1,
+                        journey: "ATM Balance Inquiry Enhancement", 
+                        comment: "Improve balance display with additional account details",
+                        complexity: "Simple = 1 week",
+                        status: "Pending"
+                    }
+                ]
+            });
+
+            const sidebarItems = [
+                { id: 'overview', label: 'Overview' },
+                { id: 'applications', label: 'Applications' },
+                { id: 'atm', label: 'ATM' },
+                { id: 'black', label: 'Black' },
+                { id: 'branch', label: 'Branch' },
+                { id: 'contact-center', label: 'Contact Center' },
+                { id: 'dst', label: 'DST' },
+                { id: 'itm', label: 'ITM' }
+            ];
+
+            const addNewJourney = (channel) => {
+                const newJourney = {
+                    id: Date.now(),
+                    journey: "New Journey",
+                    comment: "Description...",
+                    complexity: "Simple = 1 week", 
+                    status: "Pending"
+                };
+                setJourneysData(prev => ({
+                    ...prev,
+                    [channel]: [...(prev[channel] || []), newJourney]
+                }));
+            };
+
+            const handleJourneyChange = (channel, journeyId, field, value) => {
+                setJourneysData(prev => ({
+                    ...prev,
+                    [channel]: prev[channel]?.map(journey => 
+                        journey.id === journeyId ? { ...journey, [field]: value } : journey
+                    ) || []
+                }));
+            };
+
+            const deleteJourney = (channel, journeyId) => {
+                setJourneysData(prev => ({
+                    ...prev,
+                    [channel]: prev[channel]?.filter(journey => journey.id !== journeyId) || []
+                }));
+            };
+
+            const exportData = () => {
+                const data = { journeyData, journeysData, exportDate: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dashboard-data.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const copyShareData = () => {
+                const data = { journeyData, journeysData, timestamp: new Date().toISOString() };
+                const shareableData = JSON.stringify(data, null, 2);
+                navigator.clipboard.writeText(shareableData).then(() => {
+                    setShareMessage('Data copied to clipboard!');
+                    setTimeout(() => setShareMessage(''), 3000);
+                });
+            };
+
+            const DoughnutChart = ({ percentage, label }) => {
+                return React.createElement('div', { className: 'flex flex-col items-center' },
+                    React.createElement('div', { className: 'relative w-24 h-24' },
+                        React.createElement('svg', { width: 96, height: 96, className: 'transform -rotate-90' },
+                            React.createElement('circle', { 
+                                cx: 48, cy: 48, r: 36, 
+                                stroke: '#e5e7eb', strokeWidth: 8, fill: 'transparent' 
+                            }),
+                            React.createElement('circle', { 
+                                cx: 48, cy: 48, r: 36,
+                                stroke: '#3b82f6', strokeWidth: 8, fill: 'transparent',
+                                strokeDasharray: `${2 * Math.PI * 36}`,
+                                strokeDashoffset: `${2 * Math.PI * 36 * (1 - percentage / 100)}`,
+                                className: 'transition-all duration-300'
+                            })
+                        ),
+                        React.createElement('div', { className: 'absolute inset-0 flex items-center justify-center' },
+                            React.createElement('span', { className: 'text-sm font-bold text-gray-900' }, `${percentage}%`)
+                        )
+                    ),
+                    React.createElement('p', { className: 'mt-2 text-xs text-center text-gray-600', style: { maxWidth: '80px' } }, label)
+                );
+            };
+
+            const JourneyTable = ({ channel, journeys }) => {
+                return React.createElement('div', { className: 'bg-white rounded-lg p-6 shadow-lg mt-6' },
+                    React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+                        React.createElement('h4', { className: 'text-lg font-semibold text-gray-900' },
+                            `Pending Journeys - ${channel.charAt(0).toUpperCase() + channel.slice(1)}`
+                        ),
+                        editMode && React.createElement('button', {
+                            onClick: () => addNewJourney(channel),
+                            className: 'px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm'
+                        }, 'Add Journey')
+                    ),
+                    React.createElement('div', { className: 'overflow-x-auto' },
+                        React.createElement('table', { className: 'w-full' },
+                            React.createElement('thead', null,
+                                React.createElement('tr', { className: 'border-b border-gray-200' },
+                                    React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, 'Journey'),
+                                    React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, 'Comment'),
+                                    React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, 'Status')
+                                )
+                            ),
+                            React.createElement('tbody', null,
+                                journeys?.map((journey) =>
+                                    React.createElement('tr', { key: journey.id, className: 'border-b border-gray-200 hover:bg-gray-50' },
+                                        React.createElement('td', { className: 'py-3 px-4 text-gray-900' },
+                                            editMode ? React.createElement('input', {
+                                                value: journey.journey,
+                                                onChange: (e) => handleJourneyChange(channel, journey.id, 'journey', e.target.value),
+                                                className: 'w-full p-2 border rounded bg-white border-gray-300'
+                                            }) : React.createElement('span', { className: 'font-medium' }, journey.journey)
+                                        ),
+                                        React.createElement('td', { className: 'py-3 px-4 text-gray-700' },
+                                            editMode ? React.createElement('input', {
+                                                value: journey.comment,
+                                                onChange: (e) => handleJourneyChange(channel, journey.id, 'comment', e.target.value),
+                                                className: 'w-full p-2 border rounded bg-white border-gray-300'
+                                            }) : journey.comment
+                                        ),
+                                        React.createElement('td', { className: 'py-3 px-4' },
+                                            React.createElement('span', { className: 'px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800' },
+                                                journey.status
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+            };
+
+            const renderOverview = () => {
+                return React.createElement('div', { className: 'space-y-6' },
+                    React.createElement('div', { className: 'bg-white rounded-lg p-6 shadow-lg' },
+                        React.createElement('h2', { className: 'text-xl font-bold text-gray-900 mb-6' },
+                            'Alternative delivery channels - Driving digital excellence'
+                        ),
+                        React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8' },
+                            React.createElement('div', null,
+                                React.createElement('p', { className: 'text-sm text-gray-600 mb-2' },
+                                    'Total journeys and content count across RBD'
+                                ),
+                                React.createElement('h3', { className: 'text-3xl font-bold text-gray-900 mb-4' },
+                                    'Identified ', React.createElement('span', { className: 'text-sm text-gray-600' }, 'Journeys and content')
+                                ),
+                                React.createElement('div', { className: 'space-y-2' },
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('span', { className: 'text-4xl font-bold text-gray-900 mr-2' }, journeyData.totalJourneys),
+                                        React.createElement('span', { className: 'text-lg text-gray-600' }, 'Journeys')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('span', { className: 'text-4xl font-bold text-gray-900 mr-2' }, journeyData.smsMessages),
+                                        React.createElement('span', { className: 'text-lg text-gray-600' }, 'SMS messages content')
+                                    ),
+                                    React.createElement('div', { className: 'flex items-center' },
+                                        React.createElement('span', { className: 'text-4xl font-bold text-gray-900 mr-2' }, journeyData.mobileContent),
+                                        React.createElement('span', { className: 'text-lg text-gray-600' }, 'Mobile content')
+                                    )
+                                )
+                            ),
+                            React.createElement('div', { className: 'grid grid-cols-2 gap-4' },
+                                React.createElement(DoughnutChart, { percentage: journeyData.journeyReview, label: 'Journey - review' }),
+                                React.createElement(DoughnutChart, { percentage: journeyData.journeyImplement, label: 'Journey - implement' }),
+                                React.createElement(DoughnutChart, { percentage: journeyData.smsMessagesProgress, label: 'SMS messages content' }),
+                                React.createElement(DoughnutChart, { percentage: journeyData.mobileAppProgress, label: 'Mobile app content' })
+                            )
+                        )
+                    )
+                );
+            };
+
+            const renderChannelContent = (channelName) => {
+                const channelKey = channelName.toLowerCase().replace(' ', '-');
+                const journeys = journeysData[channelKey] || [];
+                
+                return React.createElement('div', { className: 'space-y-6' },
+                    React.createElement('div', { className: 'bg-white rounded-lg p-6 shadow-lg' },
+                        React.createElement('h3', { className: 'text-xl font-bold mb-4 text-gray-900' },
+                            `${channelName} Channel Details`
+                        ),
+                        React.createElement('p', { className: 'text-gray-600' },
+                            `Manage and track journeys for the ${channelName} channel.`
+                        )
+                    ),
+                    React.createElement(JourneyTable, { channel: channelKey, journeys: journeys })
+                );
+            };
+
+            const renderContent = () => {
+                switch (currentView) {
+                    case 'overview': return renderOverview();
+                    case 'applications': return renderChannelContent('Applications');
+                    case 'atm': return renderChannelContent('ATM');
+                    case 'black': return renderChannelContent('Black');
+                    case 'branch': return renderChannelContent('Branch');
+                    case 'contact-center': return renderChannelContent('Contact Center');
+                    case 'dst': return renderChannelContent('DST');
+                    case 'itm': return renderChannelContent('ITM');
+                    default: return renderOverview();
+                }
+            };
+
+            return React.createElement('div', { className: 'min-h-screen bg-gray-50' },
+                React.createElement('nav', { className: 'bg-white border-gray-200 border-b px-6 py-4' },
+                    React.createElement('div', { className: 'flex items-center justify-between' },
+                        React.createElement('div', { className: 'flex items-center space-x-4' },
+                            React.createElement('button', {
+                                onClick: () => setSidebarOpen(!sidebarOpen),
+                                className: 'p-2 rounded-lg hover:bg-gray-100 transition-colors'
+                            }, React.createElement(Menu)),
+                            React.createElement('h1', { className: 'text-lg font-semibold text-gray-900' },
+                                'Alternative Delivery Channels Dashboard'
+                            )
+                        ),
+                        React.createElement('div', { className: 'flex items-center space-x-4' },
+                            React.createElement('button', {
+                                onClick: () => setEditMode(!editMode),
+                                className: `flex items-center px-3 py-2 rounded-lg transition-colors ${
+                                    editMode ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                }`
+                            },
+                                editMode ? React.createElement(Save, { className: 'h-4 w-4 mr-2' }) : React.createElement(Edit2, { className: 'h-4 w-4 mr-2' }),
+                                editMode ? 'Save' : 'Edit'
+                            ),
+                            React.createElement('button', {
+                                onClick: exportData,
+                                className: 'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                                title: 'Export Data'
+                            }, React.createElement(Download)),
+                            React.createElement('button', {
+                                onClick: copyShareData,
+                                className: 'p-2 rounded-lg hover:bg-gray-100 transition-colors',
+                                title: 'Copy Data to Share'
+                            }, React.createElement(Copy)),
+                            shareMessage && React.createElement('span', { className: 'text-sm text-green-600 font-medium' }, shareMessage)
+                        )
+                    )
+                ),
+                React.createElement('div', { className: 'flex' },
+                    React.createElement('div', { className: `${sidebarOpen ? 'w-64' : 'w-16'} bg-white border-r border-gray-200 transition-all duration-300 ease-in-out` },
+                        React.createElement('div', { className: 'p-4 space-y-2' },
+                            sidebarItems.map((item) =>
+                                React.createElement('div', {
+                                    key: item.id,
+                                    onClick: () => setCurrentView(item.id),
+                                    className: `w-full flex items-center px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                                        currentView === item.id ? 'bg-blue-100 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                                    }`
+                                },
+                                    sidebarOpen && React.createElement('span', { className: 'font-medium' }, item.label)
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: 'flex-1 p-6' },
+                        React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                            renderContent()
+                        )
+                    )
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(CustomerJourneyDashboard), document.getElementById('root'));
+    </script>
 </body>
 </html>
