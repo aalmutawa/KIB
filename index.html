@@ -19,31 +19,6 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel">
-        // Dashboard code will go here
-        const { useState, useEffect } = React;
-        const { 
-            FileText, CreditCard, Square, Building, Phone, Monitor, Settings, Home,
-            Menu, Download, Edit2, Save, X, Upload, Link, Copy
-        } = lucide;
-
-        const CustomerJourneyDashboard = () => {
-            const [sidebarOpen, setSidebarOpen] = useState(true);
-            const [currentView, setCurrentView] = useState('overview');
-            const [editMode, setEditMode] = useState(false);
-            const [showImportModal, setShowImportModal] = useState(false);
-            const [importText, setImportText] = useState('');
-            const [shareMessage, setShareMessage] = useState('');
-
-            // Add the complete component code here
-            return React.createElement('div', { className: 'min-h-screen bg-gray-50' }, 
-                React.createElement('h1', { className: 'text-3xl font-bold text-center py-8' }, 
-                    'Customer Journey Dashboard Loading...'
-                )
-            );
-        };
-
-        ReactDOM.render(React.createElement(CustomerJourneyDashboard), document.getElementById('root'));
-    </script>
+    <script type="text/babel" src="src/App.js"></script>
 </body>
 </html>
